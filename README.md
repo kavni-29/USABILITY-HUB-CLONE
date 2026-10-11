@@ -106,4 +106,3 @@ Scheduled close times are enforced when a dashboard or participant request arriv
 - [Routes and forms](docs/api-reference.md)
 - [Testing](docs/testing.md)
 - [Render deployment](docs/deployment.md)
-- [Implementation notes](docs/implementation-plan.md)
