@@ -39,6 +39,10 @@ def create_app(config_object=Config):
     def app_stylesheet():
         return send_from_directory(app.root_path + "/static", "app.css")
 
+    @app.get("/charts.css")
+    def charts_stylesheet():
+        return send_from_directory(app.root_path + "/static", "charts.css")
+
     @app.get("/health")
     def health():
         try:

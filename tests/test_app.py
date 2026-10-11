@@ -25,6 +25,9 @@ def test_health_and_assets(client):
     assert client.get("/health").json == {"status": "ok", "database": "ok"}
     assert client.get("/style.css").status_code == 200
     assert client.get("/app.css").status_code == 200
+    charts = client.get("/charts.css")
+    assert charts.status_code == 200
+    assert b".bar-row" in charts.data
 
 
 def test_create_publish_submit_and_results(client, app, user):
