@@ -1,131 +1,109 @@
 # UsabilityHub
 
-A full-stack user research platform built around the original HTML/CSS landing page. Creators can build, preview, publish, schedule a close time, close, reopen, and archive studies; participants can submit five question types without accounts; and creators can inspect response-distribution charts, activity trends, and safe CSV exports.
+UsabilityHub is a small user research app I built by extending a static UsabilityHub-style website with a Flask backend. A creator can make a study, share it with participants, and review the answers in charts or a CSV file.
 
-## Architecture
+[Open the Render demo](https://usability-hub-clone.onrender.com/)
+
+## What it does
+
+- Register, sign in, and manage your own studies.
+- Create studies with a title, description, methodology, and optional scheduled close time.
+- Build single-choice, multiple-choice, text, rating, and yes/no questions; preview, reorder, and publish them.
+- Share a public link that accepts responses without requiring participants to sign in.
+- View response distributions, rating charts, submission activity, and written answers; download results as CSV.
+- Close, reopen, archive, and search studies from the dashboard.
+
+Screenshots of the current application are not included in the repository yet.
+
+## Technologies
+
+The app uses Python and Flask. Flask Blueprints handle account, study, participant, and results routes. Jinja renders the pages, and the original HTML/CSS and image assets are reused for the landing page. SQLAlchemy stores users, studies, questions, and answers in SQLite locally or PostgreSQL when deployed. Flask-Migrate manages database changes; Flask-Login, Werkzeug password hashing, and Flask-WTF CSRF protection handle the basic account flow.
+
+## How the app is organised
 
 ```mermaid
 flowchart LR
-  Browser[Browser: existing HTML, CSS, assets] --> Flask[Flask app / blueprints]
-  Flask --> Auth[Authentication]
-  Flask --> Builder[Test builder and dashboard]
-  Flask --> Participant[Public participant flow]
-  Flask --> Analytics[Results and CSV]
-  Auth --> DB[(PostgreSQL / local SQLite)]
-  Builder --> DB
-  Participant --> DB
-  Analytics --> DB
+  Browser --> Flask[Flask routes and Jinja pages]
+  Flask --> Auth[Accounts and study builder]
+  Flask --> Participant[Public response form]
+  Flask --> Results[Charts and CSV export]
+  Auth --> Database[(SQLite or PostgreSQL)]
+  Participant --> Database
+  Results --> Database
 ```
 
-```mermaid
-erDiagram
-  USER ||--o{ USABILITY_TEST : owns
-  USABILITY_TEST ||--o{ QUESTION : contains
-  QUESTION ||--o{ QUESTION_OPTION : offers
-  USABILITY_TEST ||--o{ RESPONSE : receives
-  RESPONSE ||--o{ ANSWER : contains
-  QUESTION ||--o{ ANSWER : answers
-  QUESTION_OPTION ||--o{ ANSWER : selected
+The main workflow is: a signed-in creator builds and publishes a study; participants use its public link to submit answers; the creator views saved responses from the results page. A submission key prevents the same form retry from being counted twice, but opening the link again creates a new response.
+
+## Project structure
+
+```text
+app/                 Flask setup, routes, models, templates, and app CSS
+assets/              Images used by the site
+migrations/          Alembic database migrations
+tests/               Flask and migration tests
+docs/                Architecture, schema, API, testing, and deployment notes
+config.py            Environment-based app configuration
+wsgi.py              Gunicorn entry point
+render.yaml          Render web service and database configuration
 ```
 
-## Stack and design choices
+## Run locally
 
-- Python 3 and Flask Blueprints keep request handling modular and explainable.
-- Flask-SQLAlchemy maps normalized relational models; Flask-Migrate/Alembic manages schema changes.
-- PostgreSQL is configured for deployment. Local development defaults to SQLite.
-- Flask-Login provides cookie-based sessions; Werkzeug provides password hashing; Flask-WTF applies CSRF protection.
-- Server-rendered Jinja pages reuse the existing landing page instead of replacing the frontend with a framework.
-- Lightweight, accessible charts show stored answer distributions, rating scales, and daily response activity without third-party chart dependencies.
+You need Python 3.11 or later. From the repository folder, create and activate a virtual environment, then install the packages:
 
-## Local setup
-
-```sh
+```powershell
 python -m venv .venv
-# Windows: .venv\Scripts\activate
-# macOS/Linux: source .venv/bin/activate
+.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-copy .env.example .env  # Windows; on macOS/Linux use cp
 ```
 
-Set `SECRET_KEY` to a private random value before real use. With SQLite (the default), apply the schema and launch:
+Set `SECRET_KEY` and `DATABASE_URL` in a local `.env` file. For SQLite, use `DATABASE_URL=sqlite:///usabilityhub.db`; PostgreSQL can be used if you have a local database running. The `.env.example` file shows the expected variables, but its database URL assumes a local PostgreSQL server.
 
-```sh
+Apply the migrations and start Flask:
+
+```powershell
 flask --app wsgi db upgrade
 flask --app wsgi run --debug
 ```
 
-The repository includes the initial schema and an additive migration that preserves existing studies and answers. It converts old `multiple_choice` questions (which were radio-button/single-select) to `single_choice`, adds lifecycle/methodology fields, supports the new question types, and adds retry idempotency keys. When changing models during development, create a revision with `flask --app wsgi db migrate -m "Describe schema change"`, review it, then apply with `flask --app wsgi db upgrade`.
-
-To use PostgreSQL locally, set `DATABASE_URL` to a PostgreSQL connection string. Commit generated migration revisions. Render's configured start command applies pending migrations before Gunicorn; it currently runs at each startup for free-plan compatibility. Never point tests or development at production data.
-
-## Tests
-
-```sh
-pytest
-```
-
-The suite uses an isolated in-memory SQLite database and covers authentication, ownership, five question types, validation, question reorder, state transitions, response retry behavior, charts, scheduled study close, CSV safety, and migration tests. It is not a complete security assessment or PostgreSQL integration suite.
-
-## Render deployment
-
-1. Push this repository to GitHub and create a Render Blueprint from `render.yaml`.
-2. Review the web service and managed PostgreSQL instance in Render. The blueprint creates the service resources; it does not mean the application is already deployed.
-3. Render generates `SECRET_KEY` and injects the managed database URL. Keep both out of source control.
-4. The build command installs dependencies. The start command applies committed Alembic migrations before launching `gunicorn wsgi:app`. This keeps the free-plan setup self-contained; `flask db upgrade` applies only pending revisions on each process start. `/health` checks database connectivity, not schema revisions.
-5. Confirm the deployed health check and perform an account creation, test publishing, and participant submission in the deployed environment.
-
-The app trusts one proxy hop in production for HTTPS scheme/host forwarding. Secure session cookies are enabled when `FLASK_ENV=production`. Configure an explicit `SECRET_KEY` and a PostgreSQL `DATABASE_URL` in any non-Render hosting environment too.
+Then open `http://127.0.0.1:5000`. Do not use a production database for local development or tests.
 
 ## Configuration
 
-| Variable | Purpose |
+| Variable | Use |
 | --- | --- |
-| `SECRET_KEY` | Flask session and CSRF signing key; required in production. |
-| `DATABASE_URL` | SQLAlchemy database URL; defaults to local `sqlite:///usabilityhub.db`. |
-| `FLASK_ENV` | Set to `production` for secure-cookie/proxy configuration. |
+| `SECRET_KEY` | Signs sessions and CSRF tokens. Set a private value outside local development. |
+| `DATABASE_URL` | Database connection string. If omitted, the app uses local SQLite. |
+| `FLASK_ENV` | Use `production` for the deployed secure-cookie and proxy settings. |
 
-## Route overview
+## Tests
 
-| Route | Purpose |
-| --- | --- |
-| `/` | Existing public marketing page |
-| `/auth/register`, `/auth/login`, `/auth/logout` | Account lifecycle |
-| `/dashboard` | Current user's studies and response counts |
-| `/tests/new`, `/tests/<id>/edit` | Create and manage studies/questions |
-| `/tests/<id>/publish`, `/close`, `/reopen`, `/archive` | Study state transitions |
-| `/tests/<id>/preview` | Owner-only participant preview |
-| `/p/<token>` | Public participant flow |
-| `/tests/<id>/results`, `/tests/<id>/export.csv` | Owner-only analytics/export |
-| `/health` | Application/database availability |
+```powershell
+python -m pytest -q
+python -m compileall -q app tests
+```
 
-## Security and data policy
+The tests use an isolated SQLite database. They cover the main account, study, participant, results, and migration flows, but do not connect to the live site or a PostgreSQL server.
 
-Passwords are hashed, state-changing forms use CSRF tokens, queries are parameterized through SQLAlchemy, private study access checks ownership, participant links use 256-bit random tokens, and rendered user text is escaped by Jinja. CSV cells beginning with spreadsheet formula markers are prefixed to reduce formula injection risk. Production should use HTTPS and a private environment secret. The application stores account email, test/question content, response timestamps, and submitted answers; it does not request participant identity. A public link permits repeat submissions and each is counted independently; browser identity is not treated as a person-level uniqueness guarantee.
+## Deployment
 
-Questions cannot be changed or reordered after the first response, and a study with responses cannot be deleted; creators can archive it instead. Creators can optionally schedule a close date/time in their device's local timezone. The server rejects participant requests at/after the deadline; without a background worker, the visible status updates on the next dashboard or participant request. Each participant page load gets an idempotency key so retrying that submission does not double-count; opening the link again counts as a new response. This is not proof of unique real-world participants. The dashboard has title search and status filtering. Account deletion cascades through the account's studies and data at the database relationship level; there is no self-service account deletion screen yet.
+The repository includes a Render Blueprint in `render.yaml`. Connect the GitHub repository to Render, create the Blueprint resources, and let Render generate `SECRET_KEY` and provide the managed PostgreSQL `DATABASE_URL`. The start command runs `flask db upgrade` before Gunicorn so pending migrations are applied on startup. `/health` checks database connectivity.
 
-## Known limitations and next steps
+Scheduled close times are enforced when a dashboard or participant request arrives after the deadline. There is no background worker, so the study’s displayed status does not change at the exact deadline if nobody visits the app then.
 
-This is a portfolio project, not a claim of production security or penetration testing. There is no PostgreSQL integration test service, rate limiting, email verification, account deletion UI, pagination, audit log, or automated text-theme analysis. The dashboard/result routes currently load answer records into process memory; use SQL aggregation and pagination before growing to large datasets. Scale-out should move migrations to a serialized pre-deploy/release job instead of running migration checks in every instance startup.
+## Limitations
 
-## Files added or changed
+- There is no email verification, rate limiting, or self-service account deletion.
+- Tests use SQLite; PostgreSQL integration testing is not set up.
+- The results pages load response data into application memory, so large studies will need pagination and more database-side aggregation.
+- The public link allows fresh repeat submissions; the app does not try to identify unique people.
+- This project has not had a formal security audit.
 
-- `index.html`: preserves the landing design while linking signup and usable product entry points.
-- `config.py`, `wsgi.py`: environment config and WSGI entry point.
-- `app/`: Flask factory, extensions, models, blueprints, templates, and responsive app styling.
-- `migrations/`: Alembic schema revisions, including the safe expansion migration.
-- `tests/`: isolated critical-path Flask client tests.
-- `docs/`: implementation audit, architecture, schema, route reference, testing, deployment, and interview guide.
-- `requirements.txt`, `.env.example`, `.gitignore`: dependencies and local configuration hygiene.
-- `render.yaml`: Render web service and managed PostgreSQL blueprint.
+## More documentation
 
-The repository is configured for Render; no live deployment was created or verified by this implementation pass.
-
-## Interview notes
-
-- **Why separate `Response` and `Answer`?** One submission can answer many questions; relational rows preserve queryable results and avoid a large opaque JSON blob.
-- **How is ownership enforced?** Every private operation loads the resource and compares its `owner_id` to the authenticated session user; unknown and foreign IDs both return 404.
-- **How does the participant lifecycle work?** A random public token resolves only to a published study. Server-side validation checks required values, option membership, text limits, and rating bounds before committing a submission plus its answers.
-- **How are old results protected?** Question structure locks after a first submission; deletion is blocked when responses exist. This prevents existing answers being reinterpreted.
-- **How are retry duplicates handled?** A per-form random key and a unique database constraint make a replay idempotent. A new page load gets a new key and counts separately; it does not prove distinct people.
-- **What would you improve next?** Add rate limiting/email verification, PostgreSQL integration CI, analytics pagination and SQL aggregation, account deletion UI, and a clearer privacy/retention workflow.
+- [Architecture](docs/architecture.md)
+- [Database schema](docs/database-schema.md)
+- [Routes and forms](docs/api-reference.md)
+- [Testing](docs/testing.md)
+- [Render deployment](docs/deployment.md)
+- [Implementation notes](docs/implementation-plan.md)
