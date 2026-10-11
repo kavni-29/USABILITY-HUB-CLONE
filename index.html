@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="author" content="Kavni Ranpara">
-    <meta name="description" content="Welcome to UsabilityHub! Expore now!">
+    <meta name="description" content="Create usability tests, share them with participants, and learn from real responses.">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>USABILITY HUB</title>
+    <title>UsabilityHub — Research with confidence</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -20,17 +20,17 @@
 
     <nav>
         <div class="container flex navbar">
-            <a href="#" class="logo">
+            <a href="{{ url_for('home') }}" class="logo">
                 <img src="assets/asset 0.png" alt="company logo">
             </a>
             <div class="nav-links">
                 <ul class="flex">
-                    <li><a href="#" class="hlink">Products</a></li>
-                    <li><a href="#" class="hlink">Customers</a></li>
-                    <li><a href="#" class="hlink">Pricing</a></li>
-                    <li><a href="#" class="hlink">Resources</a></li>
-                    <li><a href="#" class="hlink secondary-button">Sign in</a></li>
-                    <li><a href="#" class="hlink primary-button">Sign up</a></li>
+                    <li><a href="#features" class="hlink">Products</a></li>
+                    <li><a href="#companies" class="hlink">Customers</a></li>
+                    <li><a href="#cta-sub" class="hlink">Pricing</a></li>
+                    <li><a href="#examples" class="hlink">Resources</a></li>
+                    <li><a href="{{ url_for('auth.login') }}" class="hlink secondary-button">Sign in</a></li>
+                    <li><a href="{{ url_for('auth.register') }}" class="hlink primary-button">Sign up</a></li>
                 </ul>
             </div>
         </div>
@@ -41,7 +41,7 @@
             <div class="hero-left">
                 <h1>Design confidently</h1>
                 <p class="para">UsabilityHub is a remote user research platform that takes the guesswork out of design decisions by validating them with real users.</p>
-                <a href="#" id="getstarted"class="primary-button">Get Started</a>
+                <a href="{{ url_for('auth.register') }}" id="getstarted" class="primary-button">Get Started</a>
             </div>
 
             <div class="hero-right">
@@ -53,7 +53,7 @@
 
     <main>
         <div class="container">
-            <section class="companies">
+            <section class="companies" id="companies">
                 <div class="company-header font">The world's best companies rely on UsabilityHub to make better design decisions.</div>
                 <div class="company-logos flex">
                     <img src="assets/asset 2.png" alt="amazon logo">
@@ -67,10 +67,10 @@
                 </div>
             </section>
 
-            <section class="features">
+            <section class="features" id="features">
                 <div class="features-header">
                     <h2>Your user research Swiss Army knife</h2>
-                    <a href="#" id="featuresbtn" class="secondary-button">See all features <i class="fa-solid fa-arrow-right-long"></i></a>
+                        <a href="{{ url_for('auth.register') }}" class="secondary-button">Create your first test <i class="fa-solid fa-arrow-right-long"></i></a>
                 </div>
 
                 <div class="features-content flex">
@@ -79,42 +79,42 @@
                         <img src="assets/asset 9.svg" alt="card sorting">
                         <h3>Card Sorting</h3>
                         <p class="para">Discover how people group and label information.</p>
-                        <a href="#" class="secondary-button-feature">Learn More <i class="fa-solid fa-arrow-right-long"></i></a>
+                        <a href="{{ url_for('auth.register') }}" class="secondary-button-feature">Try a study <i class="fa-solid fa-arrow-right-long"></i></a>
                     </div>
 
                     <div class="feature-card flex">
                         <img src="assets/asset 10.svg" alt="card sorting">
                         <h3>Prototype tests</h3>
                         <p class="para">Discover How people navigate your Figma prototypes.</p>
-                        <a href="#" class="secondary-button-feature">Learn More <i class="fa-solid fa-arrow-right-long"></i></a>
+                        <a href="{{ url_for('auth.register') }}" class="secondary-button-feature">Try a study <i class="fa-solid fa-arrow-right-long"></i></a>
                     </div>
 
                     <div class="feature-card flex">
                         <img src="assets/asset 11.svg" alt="card sorting">
                         <h3>First click tests</h3>
                         <p class="para">Test interaction with first click and navigation tests.</p>
-                        <a href="#" class="secondary-button-feature">Learn More <i class="fa-solid fa-arrow-right-long"></i></a>
+                        <a href="{{ url_for('auth.register') }}" class="secondary-button-feature">Try a study <i class="fa-solid fa-arrow-right-long"></i></a>
                     </div>
 
                     <div class="feature-card flex">
                         <img src="assets/asset 12.svg" alt="card sorting">
                         <h3>Design surveys</h3>
                         <p class="para">Get feedback on image, videos or audio files.</p>
-                        <a href="#" class="secondary-button-feature">Learn More <i class="fa-solid fa-arrow-right-long"></i></a>
+                        <a href="{{ url_for('auth.register') }}" class="secondary-button-feature">Try a study <i class="fa-solid fa-arrow-right-long"></i></a>
                     </div>
 
                     <div class="feature-card flex">
                         <img src="assets/asset 13.svg" alt="card sorting">
                         <h3>Preference tests</h3>
                         <p class="para">Find out which design users prefer and why.</p>
-                        <a href="#" class="secondary-button-feature">Learn More <i class="fa-solid fa-arrow-right-long"></i></a>
+                        <a href="{{ url_for('auth.register') }}" class="secondary-button-feature">Try a study <i class="fa-solid fa-arrow-right-long"></i></a>
                     </div>
 
                     <div class="feature-card flex">
                         <img src="assets/asset 14.svg" alt="card sorting">
                         <h3>Five second tests</h3>
                         <p class="para">Test comprehensibility by measuring first impressions.</p>
-                        <a href="#" class="secondary-button-feature">Learn More <i class="fa-solid fa-arrow-right-long"></i></a>
+                        <a href="{{ url_for('auth.register') }}" class="secondary-button-feature">Try a study <i class="fa-solid fa-arrow-right-long"></i></a>
                     </div>
 
                 </div>
@@ -157,29 +157,29 @@
                 </div>
             </section>
 
-            <section class="examples">
+            <section class="examples" id="examples">
                 <div class="examples-header">
                     <h2>One platform, endless possibilities!</h2>
-                    <a href="#" id="featuresbtn" class="secondary-button">See more examples <i class="fa-solid fa-arrow-right-long"></i></a>
+                    <a href="{{ url_for('auth.register') }}" class="secondary-button">Build a study like these <i class="fa-solid fa-arrow-right-long"></i></a>
                 </div>
 
                 <div class="examples-area flex">
 
-                    <a href="#" id="one" class="example-card flex">
+                    <a href="{{ url_for('auth.register') }}" id="one" class="example-card flex">
                         <h3>Can users complete my task in software interaface?</h3>
                     </a>
                 
-                    <a href="#" id="two" class="example-card flex">
+                    <a href="{{ url_for('auth.register') }}" id="two" class="example-card flex">
                         <h3>Can users find important pages on my website?</h3>
                     </a>
                 
                 
-                    <a href="#" id="three" class="example-card flex">
+                    <a href="{{ url_for('auth.register') }}" id="three" class="example-card flex">
                         <h3>Is my website's intended audience clear?</h3>
                     </a>
                 
                 
-                    <a href="#" id="four" class="example-card flex">
+                    <a href="{{ url_for('auth.register') }}" id="four" class="example-card flex">
                         <h3>Do visitors understand what the page is about?</h3>
                     </a>
                     
@@ -191,19 +191,16 @@
         <section class="cta-main">
                 <div class="cta-info flex container">
                     <div class="info-left">
-                        <h2>No Participants? 🤨</h2>
-                        <h2>No Problem!</h2>
-                        <p id="cta-para">Our integrated panel allows you to quickly and affordably recruit research participants that precisely match your target audience.</p>
-                        <h3>Our Panel Includes:</h3>
+                        <h2>Bring Your Own Participants</h2>
+                        <p id="cta-para">Share a public study link with your audience. Participants can respond without creating an account.</p>
+                        <h3>Learn from every response:</h3>
                         <ul id="cta-list">
-                            <li>450K+ panel participants</li>
-                            <li>Coverage in 100+ countries</li>
-                            <li>35+ demographic options</li>
-                            <li>Average 5hr turn around time</li>
-                            <li>Free demographic targeting</li>
-                            <li>Response quality guarantee</li>
+                            <li>Collect multiple-choice and preference feedback</li>
+                            <li>Measure ratings on a configurable scale</li>
+                            <li>Review response distributions and averages</li>
+                            <li>Export results as CSV</li>
                         </ul>
-                        <a href="#" class="primary-button">Learn More</a>
+                        <a href="{{ url_for('auth.register') }}" class="primary-button">Create a test</a>
                     </div>
 
                     <div class="info-right">
@@ -212,17 +209,17 @@
                 </div>
             </section>
 
-            <section class="cta-sub container">
+            <section class="cta-sub container" id="cta-sub">
                 <h2>Start Testing Today</h2>
-                <p>Take the guesswork out of design decisions!</p>
-                <a href="#" id="featuresbtn" class="primary-button">Get Started <i class="fa-solid fa-arrow-right-long"></i></a>
+                <p>Build a usability test, share a participant link, and review the results.</p>
+                <a href="{{ url_for('auth.register') }}" class="primary-button">Get Started <i class="fa-solid fa-arrow-right-long"></i></a>
             </section>
         
     </main>
 
     <footer>
         <div class="content-footer container flex">
-            <a href="#" class="logo-footer">
+            <a href="{{ url_for('home') }}" class="logo-footer">
                 <img src="assets/asset 0.png" alt="company logo">
             </a>
 
@@ -230,27 +227,24 @@
             <h4 class="col-title">Product</h4>
             
                 <ul>
-                    <li><a href="#" class="hlink">Overview</a></li>
-                    <li><a href="#" class="hlink">Pricing</a></li>
-                    <li><a href="#" class="hlink">Usability</a></li>
-                    <li><a href="#" class="hlink">Customers Page</a></li>
-                    <li><a href="#" class="hlink">Status Page</a></li>
-                    <li><a href="#" class="hlink">Sign Up</a></li>
-                    <li><a href="#" class="hlink">Book a Demo</a></li>
+                    <li><a href="{{ url_for('home') }}" class="hlink">Overview</a></li>
+                    <li><a href="#cta-sub" class="hlink">Pricing</a></li>
+                    <li><a href="#features" class="hlink">Usability</a></li>
+                    <li><a href="#companies" class="hlink">Customers</a></li>
+                    <li><a href="{{ url_for('health') }}" class="hlink">Service status</a></li>
+                    <li><a href="{{ url_for('auth.register') }}" class="hlink">Sign Up</a></li>
+                    <li><a href="{{ url_for('auth.register') }}" class="hlink">Book a Demo</a></li>
                 </ul>
             
             </div>
 
             <div class="col">
-            <h4 class="col-title">Methodology</h4>
+            <h4 class="col-title">Question types</h4>
             
                 <ul>
-                    <li><a href="#" class="hlink">Card Sorting</a></li>
-                    <li><a href="#" class="hlink">Prototype Testing</a></li>
-                    <li><a href="#" class="hlink">First Click Test</a></li>
-                    <li><a href="#" class="hlink">Preference tests</a></li>
-                    <li><a href="#" class="hlink">Five Second tests</a></li>
-                    <li><a href="#" class="hlink">Design Surveys</a></li>
+                    <li><a href="{{ url_for('auth.register') }}" class="hlink">Multiple choice</a></li>
+                    <li><a href="{{ url_for('auth.register') }}" class="hlink">Design preference</a></li>
+                    <li><a href="{{ url_for('auth.register') }}" class="hlink">Rating scale</a></li>
                 </ul>
             
             </div>
@@ -259,12 +253,9 @@
             <h4 class="col-title">Resources</h4>
             
                 <ul>
-                    <li><a href="#" class="hlink">Blogs</a></li>
-                    <li><a href="#" class="hlink">Examples</a></li>
-                    <li><a href="#" class="hlink">Testing Guides</a></li>
-                    <li><a href="#" class="hlink">Help Center</a></li>
-                    <li><a href="#" class="hlink">Contact</a></li>
-                    <li><a href="#" class="hlink">Careers</a></li>
+                    <li><a href="#examples" class="hlink">Examples</a></li>
+                    <li><a href="#features" class="hlink">Testing guide</a></li>
+                    <li><a href="{{ url_for('auth.register') }}" class="hlink">Get started</a></li>
                 </ul>
             
             </div>
@@ -277,14 +268,14 @@
 
     <div class="sub-footer">
         <div class="subfooter-content container flex">
-            <a href="#" class="flink">Privacy Policy</a>
-            <a href="#" class="flink">Security Information</a>
-            <a href="#" class="flink">Terms & Conditions</a>
+            <span class="flink">Privacy: participant identity is not requested</span>
+            <span class="flink">Security: see project documentation</span>
+            <span class="flink">Research terms: share responsibly</span>
             <div class="footer-logos flex">
-                <a href="#" class="footer-img"><img src="assets/asset 25.png" alt="logo image"></a>
-                <a href="#" class="footer-img"><img src="assets/asset 26.png" alt="logo image"></a>
-                <a href="#" class="footer-img"><img src="assets/asset 27.png" alt="logo image"></a>
-                <a href="#" class="footer-img"><img src="assets/asset 28.png" alt="logo image"></a>
+                <span class="footer-img"><img src="assets/asset 25.png" alt=""></span>
+                <span class="footer-img"><img src="assets/asset 26.png" alt=""></span>
+                <span class="footer-img"><img src="assets/asset 27.png" alt=""></span>
+                <span class="footer-img"><img src="assets/asset 28.png" alt=""></span>
             </div>
         </div>
     </div>

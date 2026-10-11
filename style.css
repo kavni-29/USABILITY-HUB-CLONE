@@ -512,3 +512,51 @@ footer{
     font-weight: bold;
     font-size: 1.1001rem;
 }
+
+@media (max-width: 900px){
+    .container{max-width:100%;}
+    .nav-links ul{gap:14px;flex-wrap:wrap;}
+    .hero{gap:20px;}
+    .hero-left{max-width:50%;}
+    .hero-right img{width:min(48vw,520px);}
+    .features-content{gap:25px;justify-content:center;}
+    .feature-card{max-width:45%;}
+    .examples-area{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}
+    .example-card{width:auto;}
+    .big-features{gap:32px;}
+    .content-footer{flex-wrap:wrap;gap:28px;}
+}
+@media (max-width: 600px){
+    h1{font-size:2.25rem;}
+    h2{font-size:1.65rem;}
+    .top-banner{padding:12px;}
+    .navbar{margin-top:16px;align-items:flex-start;gap:18px;flex-direction:column;}
+    .logo img{width:205px;}
+    .nav-links ul{justify-content:flex-start;gap:10px 16px;}
+    .nav-links .primary-button,.nav-links .secondary-button{padding:8px 12px;}
+    header{padding:28px 12px 0;}
+    .hero{flex-direction:column;text-align:center;padding:24px 12px;}
+    .hero-left{max-width:none;}
+    .hero-right img{width:100%;}
+    .companies{margin-top:42px;}
+    .company-logos{gap:20px;}
+    .company-logos img{max-width:28%;height:auto;max-height:38px;}
+    .features,.examples{margin-top:75px;padding-inline:0;}
+    .features-content{margin-top:35px;}
+    .feature-card{max-width:100%;width:100%;}
+    .big-features{margin-top:50px;padding:20px;flex-direction:column;}
+    .big-features:nth-of-type(even){flex-direction:column-reverse;}
+    .para-bg{text-align:left;}
+    .examples-area{grid-template-columns:1fr;gap:8px;padding-inline:0;}
+    .example-card{min-height:220px;margin:10px 0;}
+    .cta-info{padding:28px 20px;flex-direction:column;}
+    .info-left{max-width:100%;}
+    .info-right img{max-width:100%;}
+    .cta-main{margin-top:70px;}
+    .cta-sub{margin-top:55px;}
+    footer{padding-block:50px;}
+    .content-footer{align-items:flex-start;}
+    .logo-footer{min-height:auto;width:100%;}
+    .col{min-height:auto;}
+    .subfooter-content{flex-wrap:wrap;gap:15px;}
+}
