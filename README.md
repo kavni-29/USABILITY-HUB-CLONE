@@ -68,9 +68,9 @@ The suite uses an isolated in-memory SQLite database and checks password hashing
 ## Render deployment
 
 1. Push this repository to GitHub and create a Render Blueprint from `render.yaml`.
-2. Review the web service and managed PostgreSQL instance in Render. The blueprint creates the service resources; it does not mean the application is already deployed. The configured pre-deploy migration command requires a Render paid web service; on a plan without pre-deploy support, run `flask --app wsgi db upgrade` as a one-off job before deploying each schema change.
+2. Review the web service and managed PostgreSQL instance in Render. The blueprint creates the service resources; it does not mean the application is already deployed.
 3. Render generates `SECRET_KEY` and injects the managed database URL. Keep both out of source control.
-4. The build command installs dependencies and the pre-deploy command applies committed Alembic migrations. The web process is `gunicorn wsgi:app`; `/health` checks the database and reports only availability.
+4. The build command installs dependencies. The start command applies committed Alembic migrations before launching `gunicorn wsgi:app`. This keeps the free-plan setup self-contained; `flask db upgrade` applies only pending revisions on each process start. `/health` checks the database and reports only availability.
 5. Confirm the deployed health check and perform an account creation, test publishing, and participant submission in the deployed environment.
 
 The app trusts one proxy hop in production for HTTPS scheme/host forwarding. Secure session cookies are enabled when `FLASK_ENV=production`. Configure an explicit `SECRET_KEY` and a PostgreSQL `DATABASE_URL` in any non-Render hosting environment too.

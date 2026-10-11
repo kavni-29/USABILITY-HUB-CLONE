@@ -3,8 +3,7 @@ services:
     name: usabilityhub
     runtime: python
     buildCommand: pip install -r requirements.txt
-    preDeployCommand: flask --app wsgi db upgrade
-    startCommand: gunicorn wsgi:app
+    startCommand: flask --app wsgi db upgrade && gunicorn wsgi:app
     healthCheckPath: /health
     envVars:
       - key: SECRET_KEY
