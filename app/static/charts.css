@@ -1,0 +1,27 @@
+.result { margin-block: 22px; }
+.chart-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+.chart-heading h2 { margin: 3px 0 8px; }
+.chart-heading .eyebrow { margin: 0; color: #1687ad; font-size: .78rem; letter-spacing: .11em; font-weight: 750; }
+.response-count { display: grid; flex: 0 0 auto; place-items: center; min-width: 72px; min-height: 72px; padding: 10px; border-radius: 50%; background: #e9f6fa; color: #155e79; font-size: 1.4rem; font-weight: 750; }
+.response-count small { font-size: .68rem; font-weight: 600; }
+.big-stat { margin: 24px 0; color: #163e59; font-size: 2rem; font-weight: 750; }
+.big-stat small { color: #607b8e; font-size: .92rem; font-weight: 500; }
+.bar-chart { display: grid; gap: 15px; margin: 26px 0 8px; }
+.bar-row { display: grid; grid-template-columns: minmax(110px, 1fr) minmax(100px, 3fr) minmax(90px, auto); align-items: center; gap: 14px; }
+.bar-label { overflow-wrap: anywhere; color: #294b62; }
+.bar-track { height: 16px; overflow: hidden; border-radius: 999px; background: #edf2f5; }
+.bar-fill { display: block; height: 100%; min-width: 0; border-radius: inherit; background: linear-gradient(90deg, #1b8fb6, #55c3d5); transition: width .25s ease; }
+.bar-row strong { text-align: right; color: #1d4159; white-space: nowrap; }
+.bar-row strong small { color: #6a8292; font-weight: 500; }
+.activity-chart { display: flex; align-items: end; gap: 7px; min-height: 190px; margin: 26px 0 10px; padding: 8px 8px 0; overflow-x: auto; border-bottom: 1px solid #ced9e0; }
+.activity-column { display: grid; flex: 1 0 24px; grid-template-rows: 20px minmax(20px, 1fr) 22px; align-items: end; justify-items: center; gap: 5px; height: 185px; color: #587184; font-size: .7rem; }
+.activity-column strong { color: #244a62; }
+.activity-bar { align-self: end; width: min(100%, 30px); min-height: 3px; border-radius: 5px 5px 0 0; background: #39a9c3; }
+.activity-column time { padding-bottom: 4px; white-space: nowrap; }
+.chart-axis { display: flex; justify-content: space-between; color: #6a8292; font-size: .78rem; }
+@media (max-width: 600px) {
+  .chart-heading { gap: 10px; }
+  .response-count { min-width: 58px; min-height: 58px; font-size: 1.15rem; }
+  .bar-row { grid-template-columns: minmax(78px, 1fr) minmax(55px, 2fr) minmax(72px, auto); gap: 8px; font-size: .86rem; }
+}
+@media (prefers-reduced-motion: reduce) { .bar-fill { transition: none; } }

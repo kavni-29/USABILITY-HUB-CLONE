@@ -9,13 +9,13 @@ The application uses Flask-rendered HTML forms, not a JSON REST API. State-chang
 | `GET, POST /auth/login` | Public | Form: `email`, `password`. |
 | `POST /auth/logout` | Signed in | Ends the session. |
 | `GET /dashboard` | Signed in | Current owner's studies and metrics. Optional query parameters: `q`, `status`. |
-| `GET, POST /tests/new` | Signed in | Form: `title`, `description`, `methodology`. Creates draft. |
-| `GET, POST /tests/<id>/edit` | Owner | `action=details`, `question`, `update_question`, `delete_question`, or `reorder`; form values are validated server-side. |
+| `GET, POST /tests/new` | Signed in | Form: `title`, `description`, `methodology`, optional `scheduled_close_at`, and browser `timezone_offset`. Creates draft. |
+| `GET, POST /tests/<id>/edit` | Owner | `action=details`, `question`, `update_question`, `delete_question`, or `reorder`; form values are validated server-side. A scheduled close uses local `datetime-local` input plus timezone offset and is stored in UTC. |
 | `GET /tests/<id>/preview` | Owner | Participant-style preview; never accepts answers. |
 | `POST /tests/<id>/publish` | Owner | Draft/published lifecycle action. |
 | `POST /tests/<id>/close`, `/reopen`, `/archive`, `/delete` | Owner | Enforced state transitions; deletion is blocked after responses. |
 | `GET, POST /p/<token>` | Public | Published-study form and response submission; hidden idempotency key protects POST retries. |
-| `GET /tests/<id>/results` | Owner | Question summaries, trend, and evidence-based insights. |
+| `GET /tests/<id>/results` | Owner | Question distribution charts, text responses, and daily submission trend. |
 | `GET /tests/<id>/export.csv` | Owner | Formula-safe answer-level CSV download. |
 | `GET /health` | Public | Availability and database connection status; does not verify all migrations. |
 

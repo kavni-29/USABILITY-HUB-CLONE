@@ -14,7 +14,7 @@ erDiagram
 | Table | Purpose and key constraints |
 | --- | --- |
 | `user` | Unique indexed email, password hash, creation time. |
-| `usability_test` | Owner FK, title/description, methodology, opaque unique public token, status, publication/closure timestamps, legacy `is_published` compatibility field. |
+| `usability_test` | Owner FK, title/description, methodology, opaque unique public token, status, publication/closure/scheduled-close timestamps, legacy `is_published` compatibility field. |
 | `question` | Test FK, prompt, type, required flag, order, helper text, optional rating range; check constraints enforce supported types and valid ranges. |
 | `question_option` | Ordered option rows belonging to choice questions. |
 | `response` | Test FK, submitted timestamp, unique per-test idempotency key. A new participant page load receives a new key, so fresh repeat submissions remain allowed. |

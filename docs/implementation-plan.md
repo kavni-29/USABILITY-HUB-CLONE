@@ -16,10 +16,10 @@ Git was clean at `e3a5537` before this work. The existing deployment configurati
 | Builder | Choice/preference/rating questions; edits lock after responses | Add single-choice, multi-select, text, yes/no, accessible reorder and preview |
 | Participant flow | Opaque public token, published-only access, persistent answers; each POST counted separately | Validate each type and make same-form retries idempotent while allowing a fresh visit |
 | Dashboard | Real study/response counts and share links | Add status metrics, search/filter, close/archive and question management |
-| Analytics | Stored option counts and rating mean, owner-only CSV | Add multi-select rates, text answers, response trend, evidence-based insights and CSV formula safety |
+| Analytics | Stored option counts and rating mean, owner-only CSV | Replace prose insight cards with answer-distribution charts, text answers, response trend, and CSV formula safety |
 | API | No separate JSON API; server-rendered form routes | Document actual routes, methods, and form fields; do not document imaginary REST endpoints |
 | Migrations | Initial schema migration | Add a forward-only migration preserving existing records |
-| Tests | Five critical-path Flask client tests | Cover new question types, transitions, idempotency, insight calculations, CSV and ownership |
+| Tests | Five critical-path Flask client tests | Cover new question types, transitions, scheduling, idempotency, charts, CSV and ownership |
 | Documentation | README with architecture and interview notes | Add architecture, schema, route/API, testing, deployment, and interview docs |
 
 ## Decisions and safety
@@ -29,7 +29,7 @@ Git was clean at `e3a5537` before this work. The existing deployment configurati
 - Preserve the old publication flag during transition; new status is canonical and old deployments can be migrated without dropping study/answer data.
 - Question structure can still be edited only before the first response; after that it is locked to preserve historical interpretation. Study title/description may be corrected. A study with responses is archived rather than deleted.
 - A public submission has a random idempotency key so a retry of the same form post does not double-count. Opening the link again creates a fresh key and is treated as a separate submission; this is not a real-person identity guarantee.
-- Insights report observed counts and sample sizes, describe ties/low samples plainly, and never claim causality or statistical significance.
+- Charts show counts and the share of respondents who answered each question; multi-select percentages may exceed 100% when summed.
 
 ## Acceptance checklist
 
@@ -40,7 +40,8 @@ Git was clean at `e3a5537` before this work. The existing deployment configurati
 - [x] Provide keyboard-operable question reorder controls and owner-only preview.
 - [x] Reject participant submissions unless published; validate answer types and deduplicate same-key retries.
 - [x] Populate dashboard status metrics from SQL and implement search/filter/actions.
-- [x] Show stored-data analytics for options, multi-select rates, ratings, text answers, response timeline, and deterministic insights.
+- [x] Show stored-data charts for options, multi-select rates, rating distribution, text answers, and response timeline.
+- [x] Let creators schedule a close date/time and reject participant requests after the deadline.
 - [x] Keep CSV owner-only and formula-safe.
 - [x] Add a forward migration and tests; test suite and SQLite data-preservation migration test pass.
 - [x] Keep Render start command compatible with the user's no-shell plan and document migration-on-start behavior.

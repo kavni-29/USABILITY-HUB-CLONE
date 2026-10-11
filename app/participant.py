@@ -1,4 +1,5 @@
 import secrets
+from datetime import datetime, timezone
 
 from flask import Blueprint, abort, flash, render_template, request
 from sqlalchemy.exc import IntegrityError
@@ -21,6 +22,15 @@ def participate(token):
     )
     if not test:
         abort(404)
+    if test.scheduled_close_at:
+        deadline = test.scheduled_close_at
+        if deadline.tzinfo is None:
+            deadline = deadline.replace(tzinfo=timezone.utc)
+        if deadline <= datetime.now(timezone.utc):
+            test.status, test.is_published = "closed", False
+            test.closed_at = deadline
+            db.session.commit()
+            abort(404)
     if request.method == "POST":
         key = request.form.get("submission_key", "")
         if len(key) != 43 or not key.isascii() or not all(character.isalnum() or character in "_-" for character in key):

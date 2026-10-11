@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
@@ -22,6 +22,15 @@ def index():
     if status in {"draft", "published", "closed", "archived"}:
         query = query.where(UsabilityTest.status == status)
     tests = db.session.scalars(query.order_by(UsabilityTest.updated_at.desc())).all()
+    now = datetime.now(timezone.utc)
+    changed = False
+    for test in tests:
+        if test.status == "published" and test.scheduled_close_at and as_utc(test.scheduled_close_at) <= now:
+            test.status, test.is_published = "closed", False
+            test.closed_at = as_utc(test.scheduled_close_at)
+            changed = True
+    if changed:
+        db.session.commit()
     totals = db.session.execute(
         db.select(
             func.count(UsabilityTest.id),
@@ -51,7 +60,24 @@ def valid_test_details(form):
     methodology = form.get("methodology", "general").strip()
     if not title or len(title) > 120 or len(description) > 1000 or methodology not in METHODOLOGIES:
         raise ValueError("Check the title, description, and methodology.")
-    return title, description, methodology
+    raw_close = form.get("scheduled_close_at", "").strip()
+    scheduled_close = None
+    if raw_close:
+        try:
+            local_close = datetime.strptime(raw_close, "%Y-%m-%dT%H:%M")
+            offset_minutes = int(form.get("timezone_offset", "0"))
+        except (ValueError, TypeError):
+            raise ValueError("Enter a valid scheduled close date and time.") from None
+        if not -840 <= offset_minutes <= 840:
+            raise ValueError("Your timezone setting is invalid. Refresh the page and try again.")
+        scheduled_close = (local_close + timedelta(minutes=offset_minutes)).replace(tzinfo=timezone.utc)
+        if scheduled_close <= datetime.now(timezone.utc):
+            raise ValueError("The scheduled close date and time must be in the future.")
+    return title, description, methodology, scheduled_close
+
+
+def as_utc(value):
+    return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value.astimezone(timezone.utc)
 
 
 @bp.route("/tests/new", methods=["GET", "POST"])
@@ -59,8 +85,8 @@ def valid_test_details(form):
 def create():
     if request.method == "POST":
         try:
-            title, description, methodology = valid_test_details(request.form)
-            test = UsabilityTest(owner_id=current_user.id, title=title, description=description, methodology=methodology)
+            title, description, methodology, scheduled_close = valid_test_details(request.form)
+            test = UsabilityTest(owner_id=current_user.id, title=title, description=description, methodology=methodology, scheduled_close_at=scheduled_close)
             db.session.add(test)
             db.session.commit()
             return redirect(url_for("dashboard.edit", test_id=test.id))
@@ -77,7 +103,7 @@ def edit(test_id):
         action = request.form.get("action")
         if action == "details":
             try:
-                test.title, test.description, test.methodology = valid_test_details(request.form)
+                test.title, test.description, test.methodology, test.scheduled_close_at = valid_test_details(request.form)
                 db.session.commit()
                 flash("Study details saved.", "success")
             except ValueError as error:
@@ -154,6 +180,8 @@ def publish(test_id):
         flash("Only a draft or published study can be toggled.", "error")
     elif not test.is_published and not test.questions:
         flash("Add at least one question before publishing.", "error")
+    elif not test.is_published and test.scheduled_close_at and as_utc(test.scheduled_close_at) <= datetime.now(timezone.utc):
+        flash("Choose a future close date and time before publishing.", "error")
     elif test.is_published:
         test.is_published = False
         test.status = "draft"
@@ -175,6 +203,7 @@ def close(test_id):
     else:
         test.status, test.is_published = "closed", False
         test.closed_at = datetime.now(timezone.utc)
+        test.scheduled_close_at = None
         db.session.commit()
     return redirect(url_for("dashboard.index"))
 
@@ -186,7 +215,7 @@ def reopen(test_id):
     if test.status != "closed":
         flash("Only closed studies can be reopened.", "error")
     else:
-        test.status, test.is_published, test.closed_at = "published", True, None
+        test.status, test.is_published, test.closed_at, test.scheduled_close_at = "published", True, None, None
         test.published_at = datetime.now(timezone.utc)
         db.session.commit()
     return redirect(url_for("dashboard.index"))

@@ -66,7 +66,9 @@ def test_question_builder_types_submission_analytics_and_states(client, app, use
         assert db.session.scalar(db.select(db.func.count(Response.id)).where(Response.test_id == test_id)) == 1
     results = client.get(f"/tests/{test_id}/results")
     assert results.status_code == 200
-    assert b"Small sample" in results.data
+    assert b"Answer distribution" in results.data
+    assert b"Rating distribution" in results.data
+    assert b"Research insights" not in results.data
     assert b"&lt;script&gt;" in results.data
     csv_rows = list(csv.reader(io.StringIO(client.get(f"/tests/{test_id}/export.csv").get_data(as_text=True))))
     assert csv_rows[0] == ["submission_id", "submitted_at", "question", "question_type", "answer"]
@@ -90,3 +92,33 @@ def test_dashboard_search_and_status_metrics(client, app, user):
     assert b"Total studies" in dashboard.data
     assert b"Drafts" in dashboard.data
     assert b"No matching studies" in client.get("/dashboard?status=archived").data
+
+
+def test_scheduled_close_is_saved_in_utc_and_closes_public_study(client, app, user):
+    from datetime import datetime, timedelta, timezone
+
+    sign_in(client)
+    created = client.post("/tests/new", data={"title": "Timed study", "description": ""})
+    test_id = int(re.search(r"/tests/(\d+)/edit", created.location).group(1))
+    with app.app_context():
+        test = db.session.get(UsabilityTest, test_id)
+        token = test.public_token
+    add_question(client, test_id, "text_response", "Share a thought")
+    deadline = datetime.now(timezone.utc) + timedelta(minutes=2)
+    client.post(f"/tests/{test_id}/edit", data={
+        "action": "details", "title": "Timed study", "description": "", "methodology": "general",
+        "scheduled_close_at": deadline.strftime("%Y-%m-%dT%H:%M"), "timezone_offset": "0",
+    })
+    with app.app_context():
+        test = db.session.get(UsabilityTest, test_id)
+        assert test.scheduled_close_at is not None
+        assert test.scheduled_close_at.replace(tzinfo=timezone.utc) > datetime.now(timezone.utc)
+    client.post(f"/tests/{test_id}/publish")
+    assert b"Scheduled to close" in client.get("/dashboard").data
+    with app.app_context():
+        test = db.session.get(UsabilityTest, test_id)
+        test.scheduled_close_at = datetime.now(timezone.utc) - timedelta(seconds=1)
+        db.session.commit()
+    assert client.get(f"/p/{token}").status_code == 404
+    with app.app_context():
+        assert db.session.get(UsabilityTest, test_id).status == "closed"

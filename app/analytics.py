@@ -6,7 +6,6 @@ from flask import Blueprint, Response as FlaskResponse, abort, render_template
 from flask_login import current_user, login_required
 
 from .extensions import db
-from .insights import generate_question_insights
 from .models import Response, UsabilityTest
 
 bp = Blueprint("analytics", __name__, url_prefix="/tests")
@@ -34,12 +33,9 @@ def results(test_id):
         db.select(Response).where(Response.test_id == test.id).order_by(Response.submitted_at)
     ).all()
     summaries = []
-    all_insights = []
     for question in test.questions:
         answers = [answer for response in responses for answer in response.answers if answer.question_id == question.id]
         respondents = len({answer.response_id for answer in answers})
-        insight_items = generate_question_insights(question, answers)
-        all_insights.extend((question.prompt, item) for item in insight_items)
         if question.question_type == "rating":
             values = [int(answer.value) for answer in answers if answer.value and answer.value.isdigit()]
             counts = Counter(values)
@@ -60,7 +56,7 @@ def results(test_id):
                     for option in question.options
                 ],
             }
-        summaries.append((question, summary, insight_items))
+        summaries.append((question, summary))
     daily = defaultdict(int)
     for response in responses:
         daily[response.submitted_at.date().isoformat()] += 1
@@ -68,7 +64,7 @@ def results(test_id):
     period = (responses[0].submitted_at, responses[-1].submitted_at) if responses else None
     return render_template(
         "results.html", test=test, responses=responses, summaries=summaries,
-        trend=trend, period=period, all_insights=all_insights,
+        trend=trend, period=period,
     )
 
 

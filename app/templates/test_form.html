@@ -9,10 +9,11 @@
 <section class="panel">
   <h2>Study details</h2>
   <form method="post" class="stack">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="details">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="details"><input type="hidden" name="timezone_offset" value="0">
     <label>Title<input name="title" maxlength="120" required value="{{ test.title if test else '' }}"></label>
     <label>Description<textarea name="description" maxlength="1000" rows="3">{{ test.description if test else '' }}</textarea></label>
     <label>Methodology<select name="methodology"><option value="general" {% if not test or test.methodology == 'general' %}selected{% endif %}>General research</option><option value="first_click" {% if test and test.methodology == 'first_click' %}selected{% endif %}>First impression / first click</option><option value="preference" {% if test and test.methodology == 'preference' %}selected{% endif %}>Design preference</option><option value="concept_test" {% if test and test.methodology == 'concept_test' %}selected{% endif %}>Concept test</option><option value="survey" {% if test and test.methodology == 'survey' %}selected{% endif %}>Survey</option></select></label>
+    <label>Automatically close at (optional)<input type="datetime-local" name="scheduled_close_at" value="" data-saved-utc="{{ test.scheduled_close_at.isoformat() ~ ('Z' if test.scheduled_close_at.tzinfo is none else '') if test and test.scheduled_close_at else '' }}"><small>Uses your device's local time. Participants are blocked at the deadline; the study status updates on the next visit.</small></label>
     <button class="primary-button">Save details</button>
   </form>
 </section>
@@ -32,4 +33,18 @@
     <form method="post" class="stack"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="question"><label>Question<input name="prompt" maxlength="500" required></label><label>Helper text (optional)<input name="helper_text" maxlength="300"></label><label>Type<select name="question_type"><option value="single_choice">Single choice</option><option value="multiple_choice">Multiple choice</option><option value="text_response">Text response</option><option value="rating">Rating scale</option><option value="yes_no">Yes / No</option><option value="preference">Design preference</option></select></label><label>Options, one per line (2–10 for choice and preference)<textarea name="options" rows="4" placeholder="Option A&#10;Option B"></textarea></label><div class="inline-fields"><label>Rating minimum<input type="number" name="rating_min" min="1" max="9" value="1"></label><label>Rating maximum<input type="number" name="rating_max" min="2" max="10" value="5"></label></div><label class="check"><input type="checkbox" name="required" checked> Required</label><button class="primary-button">Add question</button></form>{% endif %}
   </section>
 {% endif %}
+<script>
+document.querySelectorAll('input[name="timezone_offset"]').forEach((field) => {
+  const form = field.closest('form');
+  const closeInput = form.querySelector('input[name="scheduled_close_at"]');
+  if (closeInput?.dataset.savedUtc) {
+    const date = new Date(closeInput.dataset.savedUtc);
+    const pad = (number) => String(number).padStart(2, '0');
+    closeInput.value = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  }
+  form.addEventListener('submit', () => {
+    field.value = closeInput?.value ? new Date(closeInput.value).getTimezoneOffset() : new Date().getTimezoneOffset();
+  });
+});
+</script>
 {% endblock %}

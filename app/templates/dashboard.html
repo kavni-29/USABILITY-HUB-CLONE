@@ -11,6 +11,7 @@
   {% if test.status == 'published' %}<form method="post" action="{{ url_for('dashboard.close', test_id=test.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="secondary-button">Close study</button></form>{% elif test.status == 'closed' %}<form method="post" action="{{ url_for('dashboard.reopen', test_id=test.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="secondary-button">Reopen</button></form>{% endif %}
   {% if test.status in ['draft','closed'] %}<form method="post" action="{{ url_for('dashboard.archive', test_id=test.id) }}" onsubmit="return confirm('Archive this study?')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="link-button">Archive</button></form>{% endif %}
   {% if not test.responses %}<form method="post" action="{{ url_for('dashboard.delete', test_id=test.id) }}" onsubmit="return confirm('Delete this study permanently?')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="link-button danger">Delete</button></form>{% endif %}</div>
+  {% if test.scheduled_close_at and test.status == 'published' %}<p>Scheduled to close <time data-local-time="{{ test.scheduled_close_at.isoformat() ~ ('Z' if test.scheduled_close_at.tzinfo is none else '') }}">{{ test.scheduled_close_at.strftime('%b %d, %Y at %H:%M UTC') }}</time></p>{% endif %}
   {% if test.status == 'published' %}<p class="share-link">Participant link: <a href="{{ url_for('participant.participate', token=test.public_token, _external=True) }}">{{ url_for('participant.participate', token=test.public_token, _external=True) }}</a><button class="link-button" type="button" data-copy="{{ url_for('participant.participate', token=test.public_token, _external=True) }}">Copy link</button></p>{% endif %}
 </article>{% endfor %}</div>{% else %}<section class="panel empty">{% if search or selected_status != 'all' %}<h2>No matching studies</h2><p>Clear the search or choose another status.</p>{% else %}<h2>Your first study starts here</h2><p>Write a question, publish a participant link, and collect feedback.</p><a class="primary-button" href="{{ url_for('dashboard.create') }}">Create a study</a>{% endif %}</section>{% endif %}
 <script>
@@ -18,5 +19,9 @@ document.querySelectorAll('[data-copy]').forEach((button) => button.addEventList
   try { await navigator.clipboard.writeText(button.dataset.copy); button.textContent = 'Copied'; }
   catch { button.textContent = button.dataset.copy; }
 }));
+document.querySelectorAll('[data-local-time]').forEach((time) => {
+  const date = new Date(time.dataset.localTime);
+  time.textContent = date.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+});
 </script>
 {% endblock %}

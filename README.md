@@ -1,6 +1,6 @@
 # UsabilityHub
 
-A full-stack user research platform built around the original HTML/CSS landing page. Creators can build, preview, publish, close, reopen, and archive studies; participants can submit five question types without accounts; and creators can inspect stored responses, trends, deterministic insights, and safe CSV exports.
+A full-stack user research platform built around the original HTML/CSS landing page. Creators can build, preview, publish, schedule a close time, close, reopen, and archive studies; participants can submit five question types without accounts; and creators can inspect response-distribution charts, activity trends, and safe CSV exports.
 
 ## Architecture
 
@@ -35,7 +35,7 @@ erDiagram
 - PostgreSQL is configured for deployment. Local development defaults to SQLite.
 - Flask-Login provides cookie-based sessions; Werkzeug provides password hashing; Flask-WTF applies CSRF protection.
 - Server-rendered Jinja pages reuse the existing landing page instead of replacing the frontend with a framework.
-- Deterministic Python insight calculations describe observed counts, ratings, ties, and sample sizes without paid AI or statistical significance claims.
+- Lightweight, accessible charts show stored answer distributions, rating scales, and daily response activity without third-party chart dependencies.
 
 ## Local setup
 
@@ -64,7 +64,7 @@ To use PostgreSQL locally, set `DATABASE_URL` to a PostgreSQL connection string.
 pytest
 ```
 
-The suite uses an isolated in-memory SQLite database and covers authentication, ownership, five question types, validation, question reorder, state transitions, response retry behavior, analytics/insights, CSV safety, and a migration test that verifies existing records survive conversion. It is not a complete security assessment or PostgreSQL integration suite.
+The suite uses an isolated in-memory SQLite database and covers authentication, ownership, five question types, validation, question reorder, state transitions, response retry behavior, charts, scheduled study close, CSV safety, and migration tests. It is not a complete security assessment or PostgreSQL integration suite.
 
 ## Render deployment
 
@@ -102,7 +102,7 @@ The app trusts one proxy hop in production for HTTPS scheme/host forwarding. Sec
 
 Passwords are hashed, state-changing forms use CSRF tokens, queries are parameterized through SQLAlchemy, private study access checks ownership, participant links use 256-bit random tokens, and rendered user text is escaped by Jinja. CSV cells beginning with spreadsheet formula markers are prefixed to reduce formula injection risk. Production should use HTTPS and a private environment secret. The application stores account email, test/question content, response timestamps, and submitted answers; it does not request participant identity. A public link permits repeat submissions and each is counted independently; browser identity is not treated as a person-level uniqueness guarantee.
 
-Questions cannot be changed or reordered after the first response, and a study with responses cannot be deleted; creators can archive it instead. This preserves the meaning and provenance of collected answers. Each participant page load gets an idempotency key so retrying that submission does not double-count; opening the link again counts as a new response. This is not proof of unique real-world participants. The dashboard has title search and status filtering. Account deletion cascades through the account's studies and data at the database relationship level; there is no self-service account deletion screen yet.
+Questions cannot be changed or reordered after the first response, and a study with responses cannot be deleted; creators can archive it instead. Creators can optionally schedule a close date/time in their device's local timezone. The server rejects participant requests at/after the deadline; without a background worker, the visible status updates on the next dashboard or participant request. Each participant page load gets an idempotency key so retrying that submission does not double-count; opening the link again counts as a new response. This is not proof of unique real-world participants. The dashboard has title search and status filtering. Account deletion cascades through the account's studies and data at the database relationship level; there is no self-service account deletion screen yet.
 
 ## Known limitations and next steps
 
