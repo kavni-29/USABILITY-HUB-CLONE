@@ -30,20 +30,29 @@ class UsabilityTest(db.Model):
     owner_id = db.Column(db.Integer, db.ForeignKey("user.id", ondelete="CASCADE"), nullable=False, index=True)
     title = db.Column(db.String(120), nullable=False)
     description = db.Column(db.String(1000), nullable=False, default="")
+    methodology = db.Column(db.String(40), nullable=False, default="general", server_default="general")
     public_token = db.Column(db.String(64), unique=True, nullable=False, default=lambda: uuid4().hex + uuid4().hex)
     is_published = db.Column(db.Boolean, nullable=False, default=False)
+    status = db.Column(db.String(20), nullable=False, default="draft", server_default="draft", index=True)
+    published_at = db.Column(db.DateTime(timezone=True), nullable=True)
+    closed_at = db.Column(db.DateTime(timezone=True), nullable=True)
     created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=now_utc)
     updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=now_utc, onupdate=now_utc)
     owner = db.relationship("User", back_populates="tests")
     questions = db.relationship("Question", back_populates="test", cascade="all, delete-orphan", order_by="Question.position")
     responses = db.relationship("Response", back_populates="test", cascade="all, delete-orphan")
+    __table_args__ = (
+        db.CheckConstraint("status IN ('draft', 'published', 'closed', 'archived')", name="ck_test_status"),
+        db.CheckConstraint("methodology IN ('general', 'first_click', 'preference', 'concept_test', 'survey')", name="ck_test_methodology"),
+    )
 
 
 class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     test_id = db.Column(db.Integer, db.ForeignKey("usability_test.id", ondelete="CASCADE"), nullable=False, index=True)
     prompt = db.Column(db.String(500), nullable=False)
-    question_type = db.Column(db.String(20), nullable=False)
+    question_type = db.Column(db.String(24), nullable=False)
+    helper_text = db.Column(db.String(300), nullable=False, default="")
     required = db.Column(db.Boolean, nullable=False, default=True)
     position = db.Column(db.Integer, nullable=False, default=0)
     rating_min = db.Column(db.Integer, nullable=True)
@@ -51,7 +60,7 @@ class Question(db.Model):
     test = db.relationship("UsabilityTest", back_populates="questions")
     options = db.relationship("QuestionOption", back_populates="question", cascade="all, delete-orphan", order_by="QuestionOption.position")
     __table_args__ = (
-        db.CheckConstraint("question_type IN ('multiple_choice', 'preference', 'rating')", name="ck_question_type"),
+        db.CheckConstraint("question_type IN ('single_choice', 'multiple_choice', 'preference', 'rating', 'text_response', 'yes_no')", name="ck_question_type"),
         db.CheckConstraint("(question_type = 'rating' AND rating_min IS NOT NULL AND rating_max IS NOT NULL AND rating_min >= 1 AND rating_max <= 10 AND rating_min < rating_max) OR (question_type != 'rating' AND rating_min IS NULL AND rating_max IS NULL)", name="ck_question_rating_range"),
     )
 
@@ -68,8 +77,10 @@ class Response(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     test_id = db.Column(db.Integer, db.ForeignKey("usability_test.id", ondelete="CASCADE"), nullable=False, index=True)
     submitted_at = db.Column(db.DateTime(timezone=True), nullable=False, default=now_utc)
+    submission_key = db.Column(db.String(64), nullable=True)
     test = db.relationship("UsabilityTest", back_populates="responses")
     answers = db.relationship("Answer", back_populates="response", cascade="all, delete-orphan")
+    __table_args__ = (db.UniqueConstraint("test_id", "submission_key", name="uq_response_submission_key"),)
 
 
 class Answer(db.Model):
@@ -81,7 +92,7 @@ class Answer(db.Model):
     response = db.relationship("Response", back_populates="answers")
     question = db.relationship("Question")
     option = db.relationship("QuestionOption")
-    __table_args__ = (db.UniqueConstraint("response_id", "question_id", name="uq_answer_response_question"),)
+    __table_args__ = (db.CheckConstraint("(option_id IS NULL AND value IS NOT NULL) OR (option_id IS NOT NULL AND value IS NULL)", name="ck_answer_one_value"),)
 
 
 @login_manager.user_loader

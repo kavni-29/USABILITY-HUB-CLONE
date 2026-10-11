@@ -1,1 +1,55 @@
-{% extends "base.html" %}{% block title %}{{ test.title }} · UsabilityHub{% endblock %}{% block content %}<section class="panel narrow participant"><p class="eyebrow">PARTICIPANT STUDY</p><h1>{{ test.title }}</h1><p>{{ test.description }}</p><p>Your responses are recorded without asking for your name or email. You may submit more than once; each submission counts as a separate response.</p><form method="post" class="stack"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% for q in test.questions %}<fieldset><legend>{{ q.prompt }}{% if q.required %} <span aria-label="required">*</span>{% endif %}</legend>{% if q.question_type == 'rating' %}<label>{{ q.rating_min }} to {{ q.rating_max }}<input type="range" name="q_{{ q.id }}" min="{{ q.rating_min }}" max="{{ q.rating_max }}" value="{{ q.rating_min }}" oninput="this.nextElementSibling.value=this.value" {% if q.required %}required{% endif %}><output>{{ q.rating_min }}</output></label>{% else %}{% for option in q.options %}<label class="choice"><input type="radio" name="q_{{ q.id }}" value="{{ option.id }}" {% if q.required %}required{% endif %}> {{ option.label }}</label>{% endfor %}{% endif %}</fieldset>{% endfor %}<button class="primary-button">Submit responses</button></form></section>{% endblock %}
+{% extends "base.html" %}
+{% block title %}{{ test.title }} · UsabilityHub{% endblock %}
+{% block content %}
+<section class="panel narrow participant">
+  <p class="eyebrow">PARTICIPANT STUDY</p>
+  <h1>{{ test.title }}</h1>
+  <p>{{ test.description }}</p>
+  <p>Your responses are collected without asking for your name or email. A new visit may be counted as a separate response.</p>
+  <form method="post" class="stack" data-participant-form>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="submission_key" value="{{ submission_key }}">
+    {% for q in test.questions %}
+      <fieldset data-required="{{ 'true' if q.required else 'false' }}" data-question-type="{{ q.question_type }}">
+        <legend>{{ q.prompt }}{% if q.required %} <span aria-label="required">*</span>{% endif %}</legend>
+        {% if q.helper_text %}<p class="helper-text">{{ q.helper_text }}</p>{% endif %}
+        {% if q.question_type == 'rating' %}
+          <label>{{ q.rating_min }} to {{ q.rating_max }}
+            <input type="range" name="q_{{ q.id }}" min="{{ q.rating_min }}" max="{{ q.rating_max }}" value="{{ q.rating_min }}" oninput="this.nextElementSibling.value=this.value" {% if q.required %}required{% endif %}>
+            <output>{{ q.rating_min }}</output>
+          </label>
+        {% elif q.question_type == 'text_response' %}
+          <label class="sr-only" for="answer-{{ q.id }}">Your answer</label>
+          <textarea id="answer-{{ q.id }}" name="q_{{ q.id }}" rows="4" maxlength="500" {% if q.required %}required{% endif %}></textarea>
+        {% else %}
+          {% for option in q.options %}
+            <label class="choice">
+              <input type="{{ 'checkbox' if q.question_type == 'multiple_choice' else 'radio' }}" name="q_{{ q.id }}" value="{{ option.id }}" {% if q.required and q.question_type != 'multiple_choice' %}required{% endif %}>
+              {{ option.label }}
+            </label>
+          {% endfor %}
+        {% endif %}
+      </fieldset>
+    {% endfor %}
+    <button class="primary-button" type="submit">Submit responses</button>
+  </form>
+</section>
+<script>
+  document.querySelector('[data-participant-form]')?.addEventListener('submit', (event) => {
+    if (!event.currentTarget.reportValidity()) { event.preventDefault(); return; }
+    const form = event.currentTarget;
+    const missing = [...form.querySelectorAll('fieldset[data-question-type="multiple_choice"][data-required="true"]')]
+      .find((field) => !field.querySelector('input[type="checkbox"]:checked'));
+    if (missing) {
+      event.preventDefault();
+      missing.querySelector('legend').focus?.();
+      missing.querySelector('legend').insertAdjacentHTML('beforeend', ' <span class="validation-hint">Select at least one option.</span>');
+      missing.querySelector('input[type="checkbox"]')?.focus();
+      return;
+    }
+    const button = event.currentTarget.querySelector('button[type="submit"]');
+    button.disabled = true;
+    button.textContent = 'Submitting…';
+  });
+</script>
+{% endblock %}

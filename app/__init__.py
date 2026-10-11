@@ -48,4 +48,13 @@ def create_app(config_object=Config):
             db.session.rollback()
             return jsonify(status="unavailable", database="unavailable"), 503
 
+    @app.errorhandler(404)
+    def not_found(_error):
+        return render_template("error.html", code=404, message="We couldn't find that page."), 404
+
+    @app.errorhandler(500)
+    def internal_error(_error):
+        db.session.rollback()
+        return render_template("error.html", code=500, message="Something went wrong. Please try again."), 500
+
     return app

@@ -513,6 +513,11 @@ footer{
     font-size: 1.1001rem;
 }
 
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible{
+    outline: 3px solid #1d69a3;
+    outline-offset: 3px;
+}
+
 @media (max-width: 900px){
     .container{max-width:100%;}
     .nav-links ul{gap:14px;flex-wrap:wrap;}

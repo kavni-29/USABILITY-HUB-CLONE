@@ -3,6 +3,7 @@ import re
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_user, logout_user
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 
 from .extensions import db
 from .models import User
@@ -27,9 +28,16 @@ def register():
             user = User(email=email)
             user.set_password(password)
             db.session.add(user)
-            db.session.commit()
-            login_user(user)
-            return redirect(url_for("dashboard.index"))
+            try:
+                db.session.commit()
+            except IntegrityError:
+                # The pre-check improves the usual message, while the unique
+                # constraint remains the authority if two requests race.
+                db.session.rollback()
+                flash("An account with that email already exists.", "error")
+            else:
+                login_user(user)
+                return redirect(url_for("dashboard.index"))
     return render_template("auth.html", mode="Create account")
 
 

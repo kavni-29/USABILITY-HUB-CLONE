@@ -46,18 +46,24 @@ def test_create_publish_submit_and_results(client, app, user):
     assert client.get(f"/tests/{test_id}/edit").status_code == 200
     assert client.get(f"/tests/{test_id}/preview").status_code == 200
     assert client.post(f"/tests/{test_id}/publish").status_code == 302
-    invalid = client.post(f"/p/{token}", data={f"q_{question_id}": "999999"})
+    participant_url = f"/p/{token}"
+    participant_form = client.get(participant_url).get_data(as_text=True)
+    submission_key = re.search(r'name="submission_key" value="([^"]+)"', participant_form).group(1)
+    invalid = client.post(participant_url, data={f"q_{question_id}": "999999", "submission_key": submission_key})
     assert invalid.status_code == 200
     with app.app_context():
         assert db.session.scalar(db.select(db.func.count(Response.id))) == 0
-    participant_result = client.post(f"/p/{token}", data={f"q_{question_id}": str(option_id)})
+    participant_result = client.post(participant_url, data={f"q_{question_id}": str(option_id), "submission_key": submission_key})
     assert b"RESPONSE RECORDED" in participant_result.data
-    assert b"RESPONSE RECORDED" in client.post(f"/p/{token}", data={f"q_{question_id}": str(option_id)}).data
+    assert b"RESPONSE RECORDED" in client.post(participant_url, data={f"q_{question_id}": str(option_id), "submission_key": submission_key}).data
+    second_form = client.get(participant_url).get_data(as_text=True)
+    second_key = re.search(r'name="submission_key" value="([^"]+)"', second_form).group(1)
+    assert b"RESPONSE RECORDED" in client.post(participant_url, data={f"q_{question_id}": str(option_id), "submission_key": second_key}).data
     with app.app_context():
         assert db.session.scalar(db.select(db.func.count(Response.id))) == 2
         assert db.session.scalar(db.select(db.func.count(Answer.id))) == 2
-    assert b"2 total responses" in client.get(f"/tests/{test_id}/results").data
-    assert b"response_id" in client.get(f"/tests/{test_id}/export.csv").data
+    assert b"2 completed submissions" in client.get(f"/tests/{test_id}/results").data
+    assert b"submission_id" in client.get(f"/tests/{test_id}/export.csv").data
     client.post(f"/tests/{test_id}/delete")
     with app.app_context():
         assert db.session.get(UsabilityTest, test_id) is not None
@@ -80,3 +86,4 @@ def test_authorization_and_unpublished_rejected(client, app, user):
     assert client.get(f"/tests/{test_id}/export.csv").status_code == 404
     assert client.post(f"/tests/{test_id}/delete").status_code == 404
     assert client.post(f"/tests/{test_id}/edit", data={"action": "details", "title": "Stolen", "description": ""}).status_code == 404
+import re

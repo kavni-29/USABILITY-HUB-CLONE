@@ -1,1 +1,21 @@
-{% extends "base.html" %}{% block title %}Results · {{ test.title }}{% endblock %}{% block content %}<p><a href="{{ url_for('dashboard.index') }}">← Dashboard</a></p><section class="page-heading"><div><p class="eyebrow">RESEARCH RESULTS</p><h1>{{ test.title }}</h1><p>{{ responses|length }} total responses</p></div><a class="secondary-button" href="{{ url_for('analytics.export', test_id=test.id) }}">Download CSV</a></section>{% if summaries %}{% for question, summary in summaries %}<section class="panel result"><h2>{{ question.prompt }}</h2>{% if question.question_type == 'rating' %}<p class="big-stat">{{ '%.2f'|format(summary.average) if summary.average is not none else '—' }} <small>average from {{ summary.count }} ratings</small></p>{% else %}{% for option,count,percent in summary.options %}<div class="distribution"><div><span>{{ option.label }}</span><strong>{{ count }} · {{ '%.0f'|format(percent) }}%</strong></div><div class="bar"><span style="width:{{ percent }}%"></span></div></div>{% else %}<p>No responses yet.</p>{% endfor %}{% endif %}</section>{% endfor %}{% else %}<section class="panel empty"><h2>No questions yet</h2><p>Add questions to see their analytics here.</p></section>{% endif %}{% endblock %}
+{% extends "base.html" %}
+{% block title %}Results · {{ test.title }}{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('dashboard.index') }}">← Dashboard</a></p>
+<section class="page-heading"><div><p class="eyebrow">RESEARCH RESULTS · {{ test.status|title }}</p><h1>{{ test.title }}</h1><p>{{ responses|length }} completed submissions{% if period %} · from {{ period[0].strftime('%b %d, %Y') }} to {{ period[1].strftime('%b %d, %Y') }}{% endif %}</p></div><a class="secondary-button" href="{{ url_for('analytics.export', test_id=test.id) }}">Download CSV</a></section>
+{% if responses %}
+  {% if trend %}<section class="panel result"><h2>Submission activity</h2><p>Daily submissions, latest 30 active days.</p>{% set max_day = trend|map(attribute=1)|max %}{% for day,count in trend %}<div class="distribution"><div><span>{{ day }}</span><strong>{{ count }}</strong></div><div class="bar"><span style="width:{{ (count / max_day * 100) if max_day else 0 }}%"></span></div></div>{% endfor %}</section>{% endif %}
+  {% if all_insights %}<section class="panel result"><p class="eyebrow">OBSERVED DATA</p><h2>Research insights</h2>{% for prompt, insight in all_insights %}<article class="insight"><h3>{{ prompt }}</h3><p><strong>{{ insight.statement }}</strong></p><p>{{ insight.explanation }}</p><small>{{ insight.metric }} · sample n={{ insight.sample_size }}. {{ insight.caveat }}</small></article>{% endfor %}</section>{% endif %}
+  {% for question, summary, insights in summaries %}<section class="panel result"><h2>{{ question.prompt }}</h2>{% if question.helper_text %}<p>{{ question.helper_text }}</p>{% endif %}
+    {% if question.question_type == 'rating' %}
+      <p class="big-stat">{{ '%.2f'|format(summary.average) if summary.average is not none else '—' }} <small>average from {{ summary.count }} ratings</small></p>
+      {% for rating,count,percent in summary.distribution %}<div class="distribution"><div><span>{{ rating }} / {{ question.rating_max }}</span><strong>{{ count }} · {{ '%.1f'|format(percent) }}%</strong></div><div class="bar"><span style="width:{{ percent }}%"></span></div></div>{% endfor %}
+    {% elif question.question_type == 'text_response' %}
+      <p>{{ summary.count }} written answers{% if summary.count > 100 %}; showing the latest 100{% endif %}</p>{% if summary.answers %}<ol class="text-responses">{% for answer in summary.answers %}<li>{{ answer.value }}</li>{% endfor %}</ol>{% else %}<p>No written answers yet.</p>{% endif %}
+    {% else %}
+      <p>{{ summary.respondents }} respondents answered. For multi-select, percentages can add up to more than 100%.</p>
+      {% for option,count,percent in summary.options %}<div class="distribution"><div><span>{{ option.label }}</span><strong>{{ count }} · {{ '%.1f'|format(percent) }}%</strong></div><div class="bar"><span style="width:{{ percent }}%"></span></div></div>{% else %}<p>No answers yet.</p>{% endfor %}
+    {% endif %}
+  </section>{% endfor %}
+{% else %}<section class="panel empty"><h2>No submissions yet</h2><p>Share the participant link after publishing this study. Results and insights will appear when responses arrive.</p></section>{% endif %}
+{% endblock %}
